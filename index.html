@@ -1,227 +1,427 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wish Design Portal</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Web Design Portal</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            color: #fff;
+            overflow-x: hidden;
+        }
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
 
-<style>
-* { box-sizing: border-box; font-family: Arial; }
-body { margin: 0; background: #f4f6f8; }
-.page { display: none; padding: 15px; }
-.page.active { display: block; }
+        .floating-shapes {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
 
-.card {
-  background: white;
-  padding: 15px;
-  border-radius: 12px;
-  box-shadow: 0 5px 15px rgba(0,0,0,.1);
-}
+        .shape {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            animation: float 10s infinite ease-in-out;
+        }
 
-input, textarea, select, button {
-  width: 100%;
-  padding: 10px;
-  margin: 6px 0;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-}
+        .shape:nth-child(1) {
+            width: 50px;
+            height: 50px;
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
 
-button {
-  background: #007bff;
-  color: white;
-  border: none;
-  font-weight: bold;
-}
+        .shape:nth-child(2) {
+            width: 30px;
+            height: 30px;
+            top: 50%;
+            left: 80%;
+            animation-delay: 2s;
+        }
 
-.topbar {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
+        .shape:nth-child(3) {
+            width: 40px;
+            height: 40px;
+            top: 80%;
+            left: 20%;
+            animation-delay: 4s;
+        }
 
-.small-btn {
-  width: auto;
-  padding: 8px 12px;
-}
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
 
-.admin-card {
-  border: 1px solid #ddd;
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 10px;
-}
-</style>
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #fff;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input, select, textarea {
+            padding: 10px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+
+        button {
+            padding: 10px;
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: linear-gradient(45deg, #feca57, #ff6b6b);
+        }
+
+        .admin-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(45deg, #ff9ff3, #f368e0);
+        }
+
+        .profile-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: linear-gradient(45deg, #54a0ff, #5f27cd);
+        }
+
+        .feedback {
+            text-align: center;
+            margin-top: 20px;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .user-list {
+            margin-top: 20px;
+        }
+
+        .user-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        .delete-btn {
+            background: #e74c3c;
+        }
+
+        .reset-btn {
+            background: #e67e22;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
 </head>
-
 <body>
+    <div class="floating-shapes">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
 
-<!-- LOGIN -->
-<div id="loginPage" class="page active">
-  <div class="card">
-    <h3>Login</h3>
-    <input id="name" placeholder="Name">
-    <input id="address" placeholder="Address">
-    <input id="phone" placeholder="Phone">
-    <input id="gmail" placeholder="Gmail">
-    <select id="gender">
-      <option value="">Gender</option>
-      <option>Male</option>
-      <option>Female</option>
-      <option>Other</option>
-    </select>
-    <button onclick="login()">Login</button>
-  </div>
-</div>
+    <!-- Login Page -->
+    <div id="login-page" class="container">
+        <button class="admin-btn" onclick="showAdminLogin()">Admin</button>
+        <h1>Login</h1>
+        <form id="login-form">
+            <label for="name">Name:</label>
+            <input type="text" id="name" required>
 
-<!-- HOME -->
-<div id="homePage" class="page">
-  <div class="topbar">
-    <button class="small-btn" onclick="profile()">👤 Profile</button>
-    <button class="small-btn" onclick="admin()">🛠 Admin</button>
-  </div>
+            <label for="address">Address:</label>
+            <input type="text" id="address" required>
 
-  <div class="card">
-    <h3>Wish Design Requirements</h3>
-    <textarea id="requirement" placeholder="Describe your wish..."></textarea>
-    <input id="time" placeholder="Required Time">
-    <button onclick="submitRequirement()">Submit</button>
-  </div>
-</div>
+            <label for="phone">Phone Number:</label>
+            <input type="tel" id="phone" required>
 
-<!-- PROFILE -->
-<div id="profilePage" class="page">
-  <div class="card">
-    <h3>Your Profile</h3>
-    <div id="profileData"></div>
-    <button onclick="home()">Back</button>
-  </div>
-</div>
+            <label for="gmail">Gmail:</label>
+            <input type="email" id="gmail" required>
 
-<!-- ADMIN LOGIN -->
-<div id="adminLoginPage" class="page">
-  <div class="card">
-    <h3>Admin Login</h3>
-    <input id="adminPass" type="password">
-    <button onclick="adminLogin()">Login</button>
-  </div>
-</div>
+            <label for="gender">Gender:</label>
+            <select id="gender" required>
+                <option value="">Select</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+            </select>
 
-<!-- ADMIN DASHBOARD -->
-<div id="adminPage" class="page">
-  <div class="card">
-    <h3>Admin Dashboard</h3>
-    <p><b>Total Users:</b> <span id="total"></span></p>
-    <div id="adminData"></div>
-    <button onclick="home()">Back</button>
-  </div>
-</div>
+            <button type="submit">Login</button>
+        </form>
+    </div>
 
-<script>
-// 🔥 FIREBASE CONFIG (PASTE YOURS)
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+    <!-- Home Page -->
+    <div id="home-page" class="container hidden">
+        <button class="profile-btn" onclick="showProfile()">Profile</button>
+        <button class="admin-btn" onclick="showAdminLogin()">Admin</button>
+        <h1>Welcome to Custom Web Design</h1>
+        <h2>Your Requirements</h2>
+        <form id="requirements-form">
+            <label for="wishes">Describe your wishes for the web design:</label>
+            <textarea id="wishes" rows="5" required></textarea>
 
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyCrTl3Ndk-4daY6CwZos4fgAxyNqeVei-k",
-  authDomain: "custom-web-design.firebaseapp.com",
-  projectId: "custom-web-design",
-  storageBucket: "custom-web-design.firebasestorage.app",
-  messagingSenderId: "65467733528",
-  appId: "1:65467733528:web:b3a58c1f7a71835d50156d"
-};
+            <label for="time">Sufficient time (in days):</label>
+            <input type="number" id="time" min="1" required>
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = firebase.database();
+            <button type="submit">Submit Requirements</button>
+        </form>
+        <div class="feedback" onclick="showFeedback()">Provide Feedback</div>
+    </div>
 
-const ADMIN_PASSWORD = "admin123";
-let currentUserId = null;
+    <!-- Profile Page -->
+    <div id="profile-page" class="container hidden">
+        <h1>Your Profile</h1>
+        <p id="profile-details"></p>
+        <button onclick="backToHome()">Back</button>
+    </div>
 
-function show(p) {
-  document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));
-  document.getElementById(p).classList.add('active');
-}
+    <!-- Admin Login -->
+    <div id="admin-login" class="container hidden">
+        <h1>Admin Login</h1>
+        <input type="password" id="admin-password" placeholder="Enter password">
+        <button onclick="loginAdmin()">Login</button>
+        <button onclick="backToLogin()">Back</button>
+    </div>
 
-function login() {
-	  
-  const user = {
-    name: name.value,
-    address: address.value,
-    phone: phone.value,
-    gmail: gmail.value,
-    gender: gender.value
-	createdAt: Date.now()
-  };
+    <!-- Admin Page -->
+    <div id="admin-page" class="container hidden">
+        <h1>Admin Panel</h1>
+        <div class="user-list" id="user-list"></div>
+        <button class="reset-btn" onclick="resetAll()">Reset All</button>
+        <button onclick="backToHome()">Back</button>
+    </div>
 
-  firebase.database().ref("users").push(user)
-    .then(ref => {
-      currentUserId = ref.key;
-      show("homePage");
-    })
-    .catch(err => {
-      alert("Firebase error: " + err.message);
-      console.error(err);
-    });
-}
+    <!-- Feedback Modal -->
+    <div id="feedback-modal" class="container hidden">
+        <h1>Feedback</h1>
+        <textarea id="feedback-text" rows="5" placeholder="Your feedback..."></textarea>
+        <button onclick="submitFeedback()">Submit</button>
+        <button onclick="closeFeedback()">Close</button>
+    </div>
 
-function submitRequirement() {
-  db.ref("users/"+currentUserId).update({
-    requirement: requirement.value,
-    time: time.value
-  });
-  alert("Submitted!");
-}
+    <script>
+        let currentUser = null;
+        const adminPassword = "admin123"; // Simple password for demo
 
-function profile() {
-  db.ref("users/"+currentUserId).once("value", s => {
-    const u = s.val();
-    profileData.innerHTML = `
-      Name: ${u.name}<br>
-      Phone: ${u.phone}<br>
-      Gmail: ${u.gmail}<br>
-      Gender: ${u.gender}
-    `;
-  });
-  show("profilePage");
-}
+        // Load users from localStorage
+        function loadUsers() {
+            return JSON.parse(localStorage.getItem('users')) || [];
+        }
 
-function admin() {
-  show("adminLoginPage");
-}
+        // Save users to localStorage
+        function saveUsers(users) {
+            localStorage.setItem('users', JSON.stringify(users));
+        }
 
-function adminLogin() {
-  if (adminPass.value !== ADMIN_PASSWORD) return alert("Wrong password");
-  show("adminPage");
+        // Show page
+        function showPage(pageId) {
+            document.querySelectorAll('.container').forEach(el => el.classList.add('hidden'));
+            document.getElementById(pageId).classList.remove('hidden');
+        }
 
-  db.ref("users").on("value", snap => {
-    const data = snap.val() || {};
-    const keys = Object.keys(data);
-    total.innerText = keys.length;
-    adminData.innerHTML = "";
+        // Login form submission
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const address = document.getElementById('address').value;
+            const phone = document.getElementById('phone').value;
+            const gmail = document.getElementById('gmail').value;
+            const gender = document.getElementById('gender').value;
 
-    keys.forEach(k => {
-      const u = data[k];
-      adminData.innerHTML += `
-        <div class="admin-card">
-          <b>${u.name}</b><br>
-          ${u.phone}<br>
-          Req: ${u.requirement || "—"}<br>
-          Time: ${u.time || "—"}
-        </div>
-      `;
-    });
-  });
-}
+            if (!name || !address || !phone || !gmail || !gender) {
+                alert('Please fill all fields.');
+                return;
+            }
 
-function home(){ show("homePage"); }
-</script>
+            const users = loadUsers();
+            let user = users.find(u => u.name === name && u.address === address && u.phone === phone && u.gmail === gmail && u.gender === gender);
 
+            if (!user) {
+                user = { name, address, phone, gmail, gender, wishes: '', time: '', feedback: '' };
+                users.push(user);
+                saveUsers(users);
+            }
+
+            currentUser = user;
+            showPage('home-page');
+        });
+
+        // Requirements form submission
+        document.getElementById('requirements-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const wishes = document.getElementById('wishes').value;
+            const time = document.getElementById('time').value;
+
+            if (!wishes || !time) {
+                alert('Please fill all fields.');
+                return;
+            }
+
+            const users = loadUsers();
+            const userIndex = users.findIndex(u => u.name === currentUser.name && u.address === currentUser.address && u.phone === currentUser.phone && u.gmail === currentUser.gmail && u.gender === currentUser.gender);
+            if (userIndex !== -1) {
+                users[userIndex].wishes = wishes;
+                users[userIndex].time = time;
+                saveUsers(users);
+                currentUser = users[userIndex];
+                alert('Requirements submitted!');
+            }
+        });
+
+        // Show profile
+        function showProfile() {
+            document.getElementById('profile-details').innerHTML = `
+                <strong>Name:</strong> ${currentUser.name}<br>
+                <strong>Address:</strong> ${currentUser.address}<br>
+                <strong>Phone:</strong> ${currentUser.phone}<br>
+                <strong>Gmail:</strong> ${currentUser.gmail}<br>
+                <strong>Gender:</strong> ${currentUser.gender}
+            `;
+            showPage('profile-page');
+        }
+
+        // Show admin login
+        function showAdminLogin() {
+            showPage('admin-login');
+        }
+
+        // Admin login
+        function loginAdmin() {
+            const password = document.getElementById('admin-password').value;
+            if (password === adminPassword) {
+                displayUsers();
+                showPage('admin-page');
+            } else {
+                alert('Incorrect password.');
+            }
+        }
+
+        // Display users in admin
+        function displayUsers() {
+            const users = loadUsers();
+            const userList = document.getElementById('user-list');
+            userList.innerHTML = '';
+            users.forEach((user, index) => {
+                const userDiv = document.createElement('div');
+                userDiv.className = 'user-item';
+                userDiv.innerHTML = `
+                    <p><strong>Name:</strong> ${user.name}</p>
+                    <p><strong>Address:</strong> ${user.address}</p>
+                    <p><strong>Phone:</strong> ${user.phone}</p>
+                    <p><strong>Gmail:</strong> ${user.gmail}</p>
+                    <p><strong>Gender:</strong> ${user.gender}</p>
+                    <p><strong>Wishes:</strong> ${user.wishes}</p>
+                    <p><strong>Time:</strong> ${user.time} days</p>
+                    <p><strong>Feedback:</strong> ${user.feedback}</p>
+                    <button class="delete-btn" onclick="deleteUser(${index})">Delete</button>
+                `;
+                userList.appendChild(userDiv);
+            });
+        }
+
+        // Delete user
+        function deleteUser(index) {
+            const users = loadUsers();
+            users.splice(index, 1);
+            saveUsers(users);
+            displayUsers();
+        }
+
+        // Reset all
+        function resetAll() {
+            localStorage.removeItem('users');
+            displayUsers();
+        }
+
+        // Show feedback
+        function showFeedback() {
+            showPage('feedback-modal');
+        }
+
+        // Submit feedback
+        function submitFeedback() {
+            const feedback = document.getElementById('feedback-text').value;
+            const users = loadUsers();
+            const userIndex = users.findIndex(u => u.name === currentUser.name && u.address === currentUser.address && u.phone === currentUser.phone && u.gmail === currentUser.gmail && u.gender === currentUser.gender);
+            if (userIndex !== -1) {
+                users[userIndex].feedback = feedback;
+                saveUsers(users);
+                currentUser = users[userIndex];
+                alert('Feedback submitted!');
+                closeFeedback();
+            }
+        }
+
+        // Close feedback
+        function closeFeedback() {
+            showPage('home-page');
+        }
+
+        // Back functions
+        function backToHome() {
+            showPage('home-page');
+        }
+
+        function backToLogin() {
+            showPage('login-page');
+        }
+    </script>
 </body>
 </html>
+```
