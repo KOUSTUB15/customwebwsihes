@@ -150,18 +150,25 @@ function show(p) {
 }
 
 function login() {
+	  
   const user = {
     name: name.value,
     address: address.value,
     phone: phone.value,
     gmail: gmail.value,
     gender: gender.value
+	createdAt: Date.now()
   };
 
-  const ref = db.ref("users").push();
-  ref.set(user);
-  currentUserId = ref.key;
-  show("homePage");
+  firebase.database().ref("users").push(user)
+    .then(ref => {
+      currentUserId = ref.key;
+      show("homePage");
+    })
+    .catch(err => {
+      alert("Firebase error: " + err.message);
+      console.error(err);
+    });
 }
 
 function submitRequirement() {
