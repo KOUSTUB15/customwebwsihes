@@ -5,6 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Custom Web Design Portal</title>
+	<!-- Firebase SDKs -->
+	<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -421,7 +426,101 @@
         function backToLogin() {
             showPage('login-page');
         }
+		/* 🔥 FIREBASE CONFIG (PASTE YOUR CONFIG HERE) */
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyBmW9rskFBl2FOe8eqlfxuRSMUEkO4YuF0",
+  authDomain: "customwishes-afd76.firebaseapp.com",
+  projectId: "customwishes-afd76",
+  storageBucket: "customwishes-afd76.firebasestorage.app",
+  messagingSenderId: "942669458262",
+  appId: "1:942669458262:web:91b97df74377bfdd79c4f7"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.database();
+
+let currentUserUID = null;
+
+/* LOGIN / REGISTER */
+document.getElementById("login-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const email = document.getElementById("gmail").value;
+  const password = document.getElementById("phone").value;
+
+  try {
+    const userCred = await auth.signInWithEmailAndPassword(email, password);
+    currentUserUID = userCred.user.uid;
+    showPage("home-page");
+  } catch {
+    const userCred = await auth.createUserWithEmailAndPassword(email, password);
+    currentUserUID = userCred.user.uid;
+
+    db.ref("users/" + currentUserUID).set({
+      name: name.value,
+      address: address.value,
+      phone: phone.value,
+      gmail: email,
+      gender: gender.value
+    });
+
+    showPage("home-page");
+  }
+});
+
+/* SAVE REQUIREMENTS */
+document.getElementById("requirements-form").addEventListener("submit", e => {
+  e.preventDefault();
+
+  db.ref("users/" + currentUserUID + "/requirements").set({
+    wishes: wishes.value,
+    time: time.value
+  });
+
+  alert("Saved in Firebase ✅");
+});
+
+/* ADMIN PANEL */
+function loginAdmin() {
+  const password = document.getElementById("admin-password").value;
+  if (password !== "admin123") return alert("Wrong password");
+
+  const list = document.getElementById("user-list");
+  list.innerHTML = "";
+
+  db.ref("users").on("value", snap => {
+    list.innerHTML = "";
+    snap.forEach(child => {
+      const u = child.val();
+      list.innerHTML += `
+        <div class="user-item">
+          <b>${u.name}</b><br>
+          ${u.gmail}<br>
+          ${u.phone}<br>
+          ${u.gender}<br>
+          Wishes: ${u.requirements?.wishes || "-"}
+        </div>
+      `;
+    });
+  });
+
+  showPage("admin-page");
+}
+
+/* PAGE NAVIGATION */
+function showPage(id) {
+  document.querySelectorAll(".container").forEach(c => c.classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+}
     </script>
 </body>
 </html>
-```
