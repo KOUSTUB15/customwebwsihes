@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wish Design Portal</title>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<style>
+* { box-sizing: border-box; font-family: Arial; }
+body { margin: 0; background: #f4f6f8; }
+.page { display: none; padding: 15px; }
+.page.active { display: block; }
+
+.card {
+  background: white;
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0,0,0,.1);
+}
+
+input, textarea, select, button {
+  width: 100%;
+  padding: 10px;
+  margin: 6px 0;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+button {
+  background: #007bff;
+  color: white;
+  border: none;
+  font-weight: bold;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.small-btn {
+  width: auto;
+  padding: 8px 12px;
+}
+
+.admin-card {
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="loginPage" class="page active">
+  <div class="card">
+    <h3>Login</h3>
+    <input id="name" placeholder="Name">
+    <input id="address" placeholder="Address">
+    <input id="phone" placeholder="Phone">
+    <input id="gmail" placeholder="Gmail">
+    <select id="gender">
+      <option value="">Gender</option>
+      <option>Male</option>
+      <option>Female</option>
+      <option>Other</option>
+    </select>
+    <button onclick="login()">Login</button>
+  </div>
+</div>
+
+<!-- HOME -->
+<div id="homePage" class="page">
+  <div class="topbar">
+    <button class="small-btn" onclick="profile()">👤 Profile</button>
+    <button class="small-btn" onclick="admin()">🛠 Admin</button>
+  </div>
+
+  <div class="card">
+    <h3>Wish Design Requirements</h3>
+    <textarea id="requirement" placeholder="Describe your wish..."></textarea>
+    <input id="time" placeholder="Required Time">
+    <button onclick="submitRequirement()">Submit</button>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<div id="profilePage" class="page">
+  <div class="card">
+    <h3>Your Profile</h3>
+    <div id="profileData"></div>
+    <button onclick="home()">Back</button>
+  </div>
+</div>
+
+<!-- ADMIN LOGIN -->
+<div id="adminLoginPage" class="page">
+  <div class="card">
+    <h3>Admin Login</h3>
+    <input id="adminPass" type="password">
+    <button onclick="adminLogin()">Login</button>
+  </div>
+</div>
+
+<!-- ADMIN DASHBOARD -->
+<div id="adminPage" class="page">
+  <div class="card">
+    <h3>Admin Dashboard</h3>
+    <p><b>Total Users:</b> <span id="total"></span></p>
+    <div id="adminData"></div>
+    <button onclick="home()">Back</button>
+  </div>
+</div>
+
+<script>
+// 🔥 FIREBASE CONFIG (PASTE YOURS)
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyCrTl3Ndk-4daY6CwZos4fgAxyNqeVei-k",
+  authDomain: "custom-web-design.firebaseapp.com",
+  projectId: "custom-web-design",
+  storageBucket: "custom-web-design.firebasestorage.app",
+  messagingSenderId: "65467733528",
+  appId: "1:65467733528:web:b3a58c1f7a71835d50156d"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = firebase.database();
+
+const ADMIN_PASSWORD = "admin123";
+let currentUserId = null;
+
+function show(p) {
+  document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));
+  document.getElementById(p).classList.add('active');
+}
+
+function login() {
+  const user = {
+    name: name.value,
+    address: address.value,
+    phone: phone.value,
+    gmail: gmail.value,
+    gender: gender.value
+  };
+
+  const ref = db.ref("users").push();
+  ref.set(user);
+  currentUserId = ref.key;
+  show("homePage");
+}
+
+function submitRequirement() {
+  db.ref("users/"+currentUserId).update({
+    requirement: requirement.value,
+    time: time.value
+  });
+  alert("Submitted!");
+}
+
+function profile() {
+  db.ref("users/"+currentUserId).once("value", s => {
+    const u = s.val();
+    profileData.innerHTML = `
+      Name: ${u.name}<br>
+      Phone: ${u.phone}<br>
+      Gmail: ${u.gmail}<br>
+      Gender: ${u.gender}
+    `;
+  });
+  show("profilePage");
+}
+
+function admin() {
+  show("adminLoginPage");
+}
+
+function adminLogin() {
+  if (adminPass.value !== ADMIN_PASSWORD) return alert("Wrong password");
+  show("adminPage");
+
+  db.ref("users").on("value", snap => {
+    const data = snap.val() || {};
+    const keys = Object.keys(data);
+    total.innerText = keys.length;
+    adminData.innerHTML = "";
+
+    keys.forEach(k => {
+      const u = data[k];
+      adminData.innerHTML += `
+        <div class="admin-card">
+          <b>${u.name}</b><br>
+          ${u.phone}<br>
+          Req: ${u.requirement || "—"}<br>
+          Time: ${u.time || "—"}
+        </div>
+      `;
+    });
+  });
+}
+
+function home(){ show("homePage"); }
+</script>
+
+</body>
+</html>
